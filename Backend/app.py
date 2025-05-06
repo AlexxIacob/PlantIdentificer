@@ -1,74 +1,12 @@
 from flask import Flask
-from tensorflow.keras.models import load_model
-import numpy as np
-from PIL import Image
-import tensorflow_hub as hub
+from flask import Blueprint
+from api_routes.chatbot_route import chatbot_bp
+from api_routes.plantpredict_route import plantpredict_bp
 
 app = Flask(__name__)
 
-
-# Încarcă modelul
-model = load_model("transferModel.h5", custom_objects={'KerasLayer': hub.KerasLayer})
-
-# Dicționarul de clase
-classLabels = {
-    "20": "fire lily", "2": "canterbury bells", "44": "bolero deep blue",
-    "0": "pink primrose", "33": "mexican aster", "26": "prince of wales feathers",
-    "6": "moon orchid", "15": "globe-flower", "24": "grape hyacinth",
-    "25": "corn poppy", "78": "toad lily", "38": "siam tulip", "23": "red ginger",
-    "66": "spring crocus", "34": "alpine sea holly", "31": "garden phlox",
-    "9": "globe thistle", "5": "tiger lily", "92": "ball moss",
-    "32": "love in the mist", "8": "monkshood", "101": "blackberry lily",
-    "13": "spear thistle", "18": "balloon flower", "99": "blanket flower",
-    "12": "king protea", "48": "oxeye daisy", "14": "yellow iris",
-    "60": "cautleya spicata", "30": "carnation", "63": "silverbush",
-    "67": "bearded iris", "62": "black-eyed susan", "68": "windflower",
-    "61": "japanese anemone", "19": "giant white arum lily",
-    "37": "great masterwort", "3": "sweet pea", "85": "tree mallow",
-    "100": "trumpet creeper", "41": "daffodil", "21": "pincushion flower",
-    "1": "hard-leaved pocket orchid", "53": "sunflower",
-    "65": "osteospermum", "69": "tree poppy", "84": "desert-rose",
-    "98": "bromelia", "86": "magnolia", "4": "english marigold",
-    "91": "bee balm", "27": "stemless gentian", "96": "mallow",
-    "56": "gaura", "39": "lenten rose", "46": "marigold",
-    "58": "orange dahlia", "47": "buttercup", "54": "pelargonium",
-    "35": "ruby-lipped cattleya", "90": "hippeastrum",
-    "28": "artichoke", "70": "gazania", "89": "canna lily",
-    "17": "peruvian lily", "97": "mexican petunia", "7": "bird of paradise",
-    "29": "sweet william", "16": "purple coneflower", "51": "wild pansy",
-    "83": "columbine", "11": "colt's foot", "10": "snapdragon",
-    "95": "camellia", "22": "fritillary", "49": "common dandelion",
-    "43": "poinsettia", "52": "primula", "71": "azalea",
-    "64": "californian poppy", "79": "anthurium", "75": "morning glory",
-    "36": "cape flower", "55": "bishop of llandaff", "59": "pink-yellow dahlia",
-    "81": "clematis", "57": "geranium", "74": "thorn apple",
-    "40": "barbeton daisy", "94": "bougainvillea", "42": "sword lily",
-    "82": "hibiscus", "77": "lotus lotus", "87": "cyclamen", "93": "foxglove",
-    "80": "frangipani", "73": "rose", "88": "watercress", "72": "water lily",
-    "45": "wallflower", "76": "passion flower", "50": "petunia"
-}
-
-def preprocess_image(image_path):
-    img = Image.open(image_path).resize((224, 224))
-    img_array = np.array(img) / 255.0
-    img_array = np.expand_dims(img_array, axis=0)
-    return img_array
-
-# Testare imagine
-test_input = preprocess_image("firelily.jpeg")  # fără $ în față
-
-# Obține predicțiile
-prediction = model.predict(test_input)[0]
-
-# Găsește top 3 clase și scoruri
-top_3_indices = prediction.argsort()[-3:][::-1]
-top_3 = [(i, prediction[i]) for i in top_3_indices]
-
-# Afișează top 3 predicții cu nume
-print("Top 3 predicții:")
-for idx, prob in top_3:
-    label = classLabels.get(str(idx), f"Label necunoscut ({idx})")
-    print(f"{label} - Probabilitate: {prob:.4f}")
+app.register_blueprint(plantpredict_bp)
+app.register_blueprint(chatbot_bp)
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)
